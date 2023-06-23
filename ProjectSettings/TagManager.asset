@@ -6,14 +6,16 @@ TagManager:
   tags:
   - Test Dummy
   - PlayerSword
+  - Edge
+  - Enemy
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - 
+  - Edge
   - 
   - 
   - 
