@@ -15,7 +15,6 @@ public class EnemyMovementScript : MonoBehaviour
 
     [HideInInspector]
     public bool moveIntoAttackPosition = false;
-    [HideInInspector]
     public static Dictionary<int, EnemyMovementScript> instances = new Dictionary<int, EnemyMovementScript>();
 
     int enemyDirection = 0;

@@ -8,13 +8,11 @@ public class TestKnockback : MonoBehaviour
     [SerializeField]
     float knockForce = 10f;
     [SerializeField]
-    [Range(-1,1)]
-    int direction;
+    Vector2 direction;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        direction = 1;
         knockForce = 10f;
     }
 
