@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
+/*
     [SerializeField]
     Transform player;
     PlayerMovement playerActions;
@@ -95,4 +96,5 @@ public class EnemyManager : MonoBehaviour
         }
         previousEnemyCount = currentEnemyCount;
     }
+    */
 }

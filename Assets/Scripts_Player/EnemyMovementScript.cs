@@ -5,7 +5,7 @@ using UnityEngine;
 public class EnemyMovementScript : MonoBehaviour
 {
     [SerializeField] private float attackDistance;
-    private float currentDistance;
+    public float currentDistance;
     [SerializeField] private float moveSpeed;
     private Rigidbody2D myRb;
     private CapsuleCollider2D capsuleCollider;
@@ -56,7 +56,6 @@ public class EnemyMovementScript : MonoBehaviour
         }
         else if (other.gameObject.tag == "Enemy")
         {
-            print(other.gameObject.name);
             if (currentState != State.Attacking)
             {
                 // Calculate enemy direction
@@ -100,14 +99,22 @@ public class EnemyMovementScript : MonoBehaviour
         Vector2 playerDirection = player.position - transform.position;
         //Debug.Log(currentDistance);
 
+        if(currentState == State.None)
+        {
+            sprite.color = Color.black;
+            WhoIsAttacking();
+        }
         // CHASING
         if (currentState == State.Chasing)
         {
+            if (!WhoIsAttacking())
+                currentState = State.None;
+
             // Player is to the left
             if (playerDirection.x < 0)
             {
                 direction = Direction.Left;
-                if (currentDistance > attackDistance && moveIntoAttackPosition)
+                if (currentDistance > attackDistance)
                 {
                     //Debug.Log("Move Left");
                     sprite.color = Color.magenta;
@@ -117,7 +124,7 @@ public class EnemyMovementScript : MonoBehaviour
             else // Player is right
             {
                 direction = Direction.Right;
-                if (currentDistance > attackDistance && moveIntoAttackPosition)
+                if (currentDistance > attackDistance)
                 {
                     //Debug.Log("Move Right");
                     sprite.color = Color.magenta;
@@ -130,7 +137,7 @@ public class EnemyMovementScript : MonoBehaviour
                 currentState = State.Attacking;
         }
         // AVOIDING
-        else if (currentState == State.Avoiding) 
+        if (currentState == State.Avoiding) 
         {
             Direction oppositeDirection = direction == Direction.Left ? Direction.Left : Direction.Right;
             Avoid(moveSpeed, oppositeDirection);
@@ -146,7 +153,7 @@ public class EnemyMovementScript : MonoBehaviour
             }
         }
         // MOVING AWAY FROM OTHER ENEMIES
-        else if (currentState == State.AvoidingEnemy)
+        if (currentState == State.AvoidingEnemy)
         {
             // Avoid Enemy Condition
             if (!currentlyMovingAwayFromEnemy)
@@ -154,18 +161,12 @@ public class EnemyMovementScript : MonoBehaviour
                 currentlyMovingAwayFromEnemy = true;
                 StartCoroutine(AvoidOtherEnemies(1));
             }
-            else // Chase Condition
-            {
-                currentState = State.Chasing;
-            }
             // Attack Condition
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
-            else
-                currentState = State.Chasing;
         }
         // ATTACKING
-        else if (currentState == State.Attacking) 
+        if (currentState == State.Attacking) 
         {
             sprite.color = Color.green;
 
@@ -175,6 +176,32 @@ public class EnemyMovementScript : MonoBehaviour
                 currentState = State.Chasing;
 
         }
+    }
+
+    public bool WhoIsAttacking()
+    {
+        bool someoneElseIsAttacking = false;
+        float closestEnemyDistance = 200;
+        EnemyMovementScript closestEnemy = null;
+        EnemyMovementScript[] enemies = FindObjectsOfType<EnemyMovementScript>();
+        foreach(EnemyMovementScript enemy in enemies)
+        {
+            if (enemy.currentState == State.Chasing || enemy.currentState == State.Attacking)
+                someoneElseIsAttacking = true;
+            float myDistance = Vector2.Distance(player.position, enemy.transform.position);
+            if (myDistance < closestEnemyDistance)
+            {
+                closestEnemyDistance = myDistance;
+                print(closestEnemyDistance);
+                closestEnemy = enemy;
+            }
+        }
+        if(!someoneElseIsAttacking)
+        {
+            if (closestEnemy == this)
+                currentState = State.Chasing;
+        }
+        return someoneElseIsAttacking;
     }
 
     void MoveLeft(float moveSpeed)
@@ -251,6 +278,7 @@ public class EnemyMovementScript : MonoBehaviour
             yield return null;
         }
         currentlyMovingAwayFromEnemy = false;
+        currentState = State.None;
     }
 
 
