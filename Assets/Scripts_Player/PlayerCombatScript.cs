@@ -21,13 +21,25 @@ public class PlayerCombatScript : MonoBehaviour
     public Attack[] lightAttack;
     [SerializeField] private Transform colliderTrans;
 
+    public Parry parry;
+    [SerializeField] private float parryHitStop;
+    [SerializeField] private float damagedHitStop;
+
 
     [Serializable]
     public class Attack
     {
-        public float[] attackTimings; // How long to hold each frame
+        public float[] frameTimings; // How long to hold each frame
+        public float lungeForce;
         public Sprite[] attackSprites; // The sprites for each frame of the attack
         public Transform[] colliderTransforms; // Where the collider should be on every frame of the attack
+    }
+    [Serializable]
+    public class Parry
+    {
+        public float knockbackForce;
+        public float[] frameTimings;
+        public Sprite[] sprites;
     }
 
     enum PossibleActions
@@ -57,7 +69,7 @@ public class PlayerCombatScript : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
             if (!isActioning)
             {
-                currentAction = StartCoroutine(Parry());
+                currentAction = StartCoroutine(PerformParry());
             }
             else if (queuedAction == PossibleActions.None)
                 queuedAction = PossibleActions.Parry;
@@ -65,18 +77,17 @@ public class PlayerCombatScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("Test Dummy"))
+        if(collision.CompareTag("Enemy"))
         {
             if (isParrying)
             {
-                print("PARRIED");
-                FindAnyObjectByType<HitStopScript>().HitStop(0.05f);
+                //KnockBack.Begin(GetComponent<Rigidbody2D>(), collision.GetComponent<EnemyMovementScript>().transform.position - transform.position, parry.knockbackForce);
+                FindAnyObjectByType<HitStopScript>().HitStop(parryHitStop);
             }
             else
             {
-                print("HIT");
                 if(isActioning) InterruptAction();
-                FindAnyObjectByType<HitStopScript>().HitStop(0.4f);
+                FindAnyObjectByType<HitStopScript>().HitStop(damagedHitStop);
             }
         }
     }
@@ -88,12 +99,12 @@ public class PlayerCombatScript : MonoBehaviour
         else
             currentCombo = 0;
 
-        // This will be called at the end every other action IF an action was queue during it
+        // This will be called at the end every other action IF an action was queued during it
         if(queuedAction == PossibleActions.LightAttack)
             StartCoroutine(LightAttack());
 
         if (queuedAction == PossibleActions.Parry)
-            StartCoroutine(Parry());
+            StartCoroutine(PerformParry());
 
         queuedAction = PossibleActions.None;
     }
@@ -119,11 +130,12 @@ public class PlayerCombatScript : MonoBehaviour
                 colliderTrans.transform.position = lightAttack[currentCombo].colliderTransforms[i].transform.position;
                 colliderTrans.localScale = lightAttack[currentCombo].colliderTransforms[i].transform.localScale;
                 colliderTrans.GetComponent<BoxCollider2D>().enabled = true;
+                KnockBack.Begin(GetComponent<Rigidbody2D>(), Vector2.right, lightAttack[currentCombo].lungeForce);
             }
             else
                 colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
 
-            yield return new WaitForSeconds(lightAttack[currentCombo].attackTimings[i]);
+            yield return new WaitForSeconds(lightAttack[currentCombo].frameTimings[i]);
         }
 
         yield return new WaitForSeconds(lightAttackCooldown);
@@ -137,20 +149,43 @@ public class PlayerCombatScript : MonoBehaviour
             currentCombo = 0;
     }
 
-    IEnumerator Parry()
+    //IEnumerator Parry()
+    //{
+    //    isActioning = true;
+    //    isParrying = true;
+    //    GetComponent<SpriteRenderer>().color = Color.green;
+    //    yield return new WaitForSeconds(parryCooldown);
+    //    GetComponent<SpriteRenderer>().color = Color.white;
+    //    isParrying = false;
+    //    //Debug.Log("End Action");
+    //    isActioning = false;
+    //    // Check if any action was queue and if so call PlayQueueAction
+    //    if (queuedAction != PossibleActions.None)
+    //        PlayQueuedAction(PossibleActions.Parry);
+    //    else
+    //        currentCombo = 0;
+    //}
+
+    IEnumerator PerformParry()
     {
         isActioning = true;
-        isParrying = true;
-        GetComponent<SpriteRenderer>().color = Color.green;
+        for (int i = 0; i < parry.sprites.Length; i++)
+        {
+            spriteRenderer.sprite = parry.sprites[i];
+    
+            if (i == 0)
+            {
+                isParrying = true;
+            }
+            else
+                isParrying = false;
+            yield return new WaitForSeconds(parry.frameTimings[i]);
+        }
+        spriteRenderer.sprite = defaultSprite;
         yield return new WaitForSeconds(parryCooldown);
-        GetComponent<SpriteRenderer>().color = Color.white;
-        isParrying = false;
-        //Debug.Log("End Action");
         isActioning = false;
-        // Check if any action was queue and if so call PlayQueueAction
+    
         if (queuedAction != PossibleActions.None)
             PlayQueuedAction(PossibleActions.Parry);
-        else
-            currentCombo = 0;
     }
 }
