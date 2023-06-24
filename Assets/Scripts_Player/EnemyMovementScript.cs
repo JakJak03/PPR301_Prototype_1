@@ -56,17 +56,10 @@ public class EnemyMovementScript : MonoBehaviour
         }
         else if (other.gameObject.tag == "Enemy")
         {
-            // Calculate enemy direction
-            Vector2 enemyDirectionVec = transform.position - other.transform.position;
-            lastKnownDistanceToEnemy = Vector2.Distance(transform.position, other.transform.position);
-            if (enemyDirectionVec.x < 0) enemyDirection = -1;
-            else enemyDirection = 1;
-            // Change state
-            currentState = State.AvoidingEnemy;
             if (currentState != State.Attacking)
             {
                 // Calculate enemy direction
-                enemyDirectionVec = transform.position - other.transform.position;
+                Vector2 enemyDirectionVec = transform.position - other.transform.position;
                 lastKnownDistanceToEnemy = Vector2.Distance(transform.position, other.transform.position);
                 if (enemyDirectionVec.x < 0) enemyDirection = -1;
                 else enemyDirection = 1;
@@ -168,6 +161,7 @@ public class EnemyMovementScript : MonoBehaviour
         else if (currentState == State.Attacking) 
         {
             sprite.color = Color.green;
+            print("Current Distance: " + currentDistance + " Attack Distance: " + attackDistance);
 
             // Chase Condition
             if (currentDistance > attackDistance)
@@ -178,15 +172,8 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveLeft(float moveSpeed)
     {
-<<<<<<< Updated upstream
-        Vector3 scale = transform.localScale;
-        if(scale.x > 0f)
-            scale.x *= -1;
-        transform.localScale = scale;
-=======
         //print("LEFT");
         ChangeDirection();
->>>>>>> Stashed changes
 
         enemyCurrentDirection = Direction.Left;
 
@@ -195,15 +182,7 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveRight(float moveSpeed)
     {
-<<<<<<< Updated upstream
-        Vector3 scale = transform.localScale;
-        if (scale.x < 0f)
-            scale.x *= -1;
-        transform.localScale = scale;
-=======
-        //print("RIGHT");
         ChangeDirection();
->>>>>>> Stashed changes
 
         enemyCurrentDirection = Direction.Right;
 
