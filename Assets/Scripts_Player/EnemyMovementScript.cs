@@ -23,13 +23,15 @@ public class EnemyMovementScript : MonoBehaviour
 
     bool edgeDetected = false;
 
-    enum Direction
+    public enum Direction
     {
         Left,
         Right,
         None
     }
     Direction direction;
+
+    public Direction enemyCurrentDirection;
 
     public enum State
     {
@@ -83,9 +85,9 @@ public class EnemyMovementScript : MonoBehaviour
     {
         currentDistance = Vector2.Distance(player.transform.position, transform.position);
         Vector2 playerDirection = player.position - transform.position;
-
-      
         //Debug.Log(currentDistance);
+
+        // CHASING
         if (currentState == State.Chasing)
         {
             // Player is to the left
@@ -113,6 +115,7 @@ public class EnemyMovementScript : MonoBehaviour
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
         }
+        // AVOIDING
         else if (currentState == State.Avoiding) 
         {
             Direction oppositeDirection = direction == Direction.Left ? Direction.Left : Direction.Right;
@@ -123,14 +126,19 @@ public class EnemyMovementScript : MonoBehaviour
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
         }
-        else if (currentState == State.AvoidingEnemy && !currentlyMovingAwayFromEnemy)
+        // MOVING AWAY FROM OTHER ENEMIES
+        else if (currentState == State.AvoidingEnemy)
         {
-            StartCoroutine(AvoidOtherEnemies(1));
-
+            // Avoid Enemy Condition
+            if (!currentlyMovingAwayFromEnemy)
+            { 
+                StartCoroutine(AvoidOtherEnemies(1));
+            }
             // Attack Condition
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
         }
+        // ATTACKING
         else if (currentState == State.Attacking) 
         {
             sprite.color = Color.green;
@@ -138,16 +146,29 @@ public class EnemyMovementScript : MonoBehaviour
             // Chase Condition
             if (currentDistance > attackDistance)
                 currentState = State.Chasing;
+
         }
     }
 
     void MoveLeft(float moveSpeed)
     {
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+
+        enemyCurrentDirection = Direction.Left;
+
         myRb.velocity = new Vector3(moveSpeed * -1, myRb.velocity.y, 0);
     }
 
     void MoveRight(float moveSpeed)
     {
+        Vector3 scale = transform.localScale;
+        scale.x *= 1;
+        transform.localScale = scale;
+
+        enemyCurrentDirection = Direction.Right;
+
         myRb.velocity = new Vector3(moveSpeed * 1, myRb.velocity.y, 0);
     }
 
