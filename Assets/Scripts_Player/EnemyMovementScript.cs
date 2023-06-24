@@ -173,7 +173,7 @@ public class EnemyMovementScript : MonoBehaviour
     void MoveLeft(float moveSpeed)
     {
         //print("LEFT");
-        ChangeDirection();
+        ChangeDirection(Direction.Left);
 
         enemyCurrentDirection = Direction.Left;
 
@@ -182,19 +182,29 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveRight(float moveSpeed)
     {
-        ChangeDirection();
+        ChangeDirection(Direction.Right);
 
         enemyCurrentDirection = Direction.Right;
 
         myRb.velocity = new Vector3(moveSpeed * 1, myRb.velocity.y, 0);
     }
 
-    void ChangeDirection()
+    void ChangeDirection(Direction direction)
     {
-        Vector3 scale = transform.localScale;
-        if (scale.x < 0f)
-            scale.x *= -1;
-        transform.localScale = scale;
+        if (direction == Direction.Left)
+        {
+            Vector3 scale = transform.localScale;
+            if (scale.x > 0f)
+                scale.x *= -1;
+            transform.localScale = scale;
+        }
+        else if (direction == Direction.Right)
+        {
+            Vector3 scale = transform.localScale;
+            if (scale.x < 0f)
+                scale.x *= -1;
+            transform.localScale = scale;
+        }
     }
 
     void Avoid(float speed, Direction playerDirection)
