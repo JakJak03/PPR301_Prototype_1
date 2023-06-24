@@ -63,7 +63,23 @@ public class EnemyMovementScript : MonoBehaviour
             else enemyDirection = 1;
             // Change state
             currentState = State.AvoidingEnemy;
+            if (currentState != State.Attacking)
+            {
+                // Calculate enemy direction
+                enemyDirectionVec = transform.position - other.transform.position;
+                lastKnownDistanceToEnemy = Vector2.Distance(transform.position, other.transform.position);
+                if (enemyDirectionVec.x < 0) enemyDirection = -1;
+                else enemyDirection = 1;
+                // Change state
+                currentState = State.AvoidingEnemy;
+            }
         }
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "Edge")
+        currentState = State.Chasing;
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -125,14 +141,24 @@ public class EnemyMovementScript : MonoBehaviour
             // Attack Condition
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
+            // Chase Condition
+            if (edgeDetected)
+            {
+                currentState = State.Chasing;
+            }
         }
         // MOVING AWAY FROM OTHER ENEMIES
         else if (currentState == State.AvoidingEnemy)
         {
             // Avoid Enemy Condition
             if (!currentlyMovingAwayFromEnemy)
-            { 
+            {
+                currentlyMovingAwayFromEnemy = true;
                 StartCoroutine(AvoidOtherEnemies(1));
+            }
+            else // Chase Condition
+            {
+                currentState = State.Chasing;
             }
             // Attack Condition
             if (currentDistance <= attackDistance)
@@ -152,10 +178,15 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveLeft(float moveSpeed)
     {
+<<<<<<< Updated upstream
         Vector3 scale = transform.localScale;
         if(scale.x > 0f)
             scale.x *= -1;
         transform.localScale = scale;
+=======
+        //print("LEFT");
+        ChangeDirection();
+>>>>>>> Stashed changes
 
         enemyCurrentDirection = Direction.Left;
 
@@ -164,14 +195,27 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveRight(float moveSpeed)
     {
+<<<<<<< Updated upstream
         Vector3 scale = transform.localScale;
         if (scale.x < 0f)
             scale.x *= -1;
         transform.localScale = scale;
+=======
+        //print("RIGHT");
+        ChangeDirection();
+>>>>>>> Stashed changes
 
         enemyCurrentDirection = Direction.Right;
 
         myRb.velocity = new Vector3(moveSpeed * 1, myRb.velocity.y, 0);
+    }
+
+    void ChangeDirection()
+    {
+        Vector3 scale = transform.localScale;
+        if (scale.x < 0f)
+            scale.x *= -1;
+        transform.localScale = scale;
     }
 
     void Avoid(float speed, Direction playerDirection)
@@ -197,7 +241,6 @@ public class EnemyMovementScript : MonoBehaviour
 
     IEnumerator AvoidOtherEnemies(float duration)
     {
-        currentlyMovingAwayFromEnemy = true;
         sprite.color = Color.blue;
         float elapsedTime = 0;
         while (elapsedTime < duration)
