@@ -52,6 +52,7 @@ public class PlayerCombatScript : MonoBehaviour
 
     private void Start()
     {
+        isParrying = false;
         spriteRenderer = GetComponent<SpriteRenderer>();
         currentCombo = 0;
     }
@@ -81,12 +82,14 @@ public class PlayerCombatScript : MonoBehaviour
         {
             if (isParrying)
             {
-                //KnockBack.Begin(GetComponent<Rigidbody2D>(), collision.GetComponent<EnemyMovementScript>().transform.position - transform.position, parry.knockbackForce);
+                SoundManager.PlaySound(0, 4);
+                KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - collision.GetComponentInParent<EnemyMovementScript>().transform.position).normalized, parry.knockbackForce);
                 FindAnyObjectByType<HitStopScript>().HitStop(parryHitStop);
             }
             else
             {
                 if(isActioning) InterruptAction();
+                KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - collision.GetComponentInParent<EnemyMovementScript>().transform.position).normalized, parry.knockbackForce);
                 FindAnyObjectByType<HitStopScript>().HitStop(damagedHitStop);
             }
         }
@@ -155,23 +158,6 @@ public class PlayerCombatScript : MonoBehaviour
         else
             currentCombo = 0;
     }
-
-    //IEnumerator Parry()
-    //{
-    //    isActioning = true;
-    //    isParrying = true;
-    //    GetComponent<SpriteRenderer>().color = Color.green;
-    //    yield return new WaitForSeconds(parryCooldown);
-    //    GetComponent<SpriteRenderer>().color = Color.white;
-    //    isParrying = false;
-    //    //Debug.Log("End Action");
-    //    isActioning = false;
-    //    // Check if any action was queue and if so call PlayQueueAction
-    //    if (queuedAction != PossibleActions.None)
-    //        PlayQueuedAction(PossibleActions.Parry);
-    //    else
-    //        currentCombo = 0;
-    //}
 
     IEnumerator PerformParry()
     {

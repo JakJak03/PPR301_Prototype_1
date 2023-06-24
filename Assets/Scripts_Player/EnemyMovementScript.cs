@@ -20,7 +20,6 @@ public class EnemyMovementScript : MonoBehaviour
     int enemyDirection = 0;
     public bool currentlyMovingAwayFromEnemy = false;
     float lastKnownDistanceToEnemy;
-
     bool edgeDetected = false;
 
     public enum Direction
@@ -192,7 +191,6 @@ public class EnemyMovementScript : MonoBehaviour
             if (myDistance < closestEnemyDistance)
             {
                 closestEnemyDistance = myDistance;
-                print(closestEnemyDistance);
                 closestEnemy = enemy;
             }
         }

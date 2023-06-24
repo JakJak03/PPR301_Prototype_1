@@ -26,6 +26,10 @@ public class EnemyCombatScript : MonoBehaviour
     public float hitStopParry;
     public float hitStopDamage;
 
+    private EnemyMovementScript enemyMovementScript;
+
+    private GameObject[] parryIndicators = new GameObject[3];
+
     [Serializable]
     public class Attack
     {
@@ -53,6 +57,7 @@ public class EnemyCombatScript : MonoBehaviour
 
     private void Start()
     {
+        enemyMovementScript = GetComponent<EnemyMovementScript>();
         health = 6;
         canBeHurt = false;
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -61,13 +66,10 @@ public class EnemyCombatScript : MonoBehaviour
     public float currentTime;
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            //print("Input Received");
-            StartCoroutine(FullCombo());
-        }
         if (timing)
             currentTime += Time.deltaTime;
+        if (enemyMovementScript.currentState == EnemyMovementScript.State.Attacking && !isActioning)
+            StartCoroutine(FullCombo());
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -88,18 +90,23 @@ public class EnemyCombatScript : MonoBehaviour
         else
         {
             health--;
-            if(health <= 0) 
+            if(health <= 0)
+            {
+                for (int i = 0; i < parryIndicators.Length; i++)
+                    if (parryIndicators[i].gameObject != null)
+                        Destroy(parryIndicators[i].gameObject);
                 Destroy(gameObject);
+            }
             KnockBack.Begin(GetComponent<Rigidbody2D>(), (playerPosition.position - transform.position).normalized, parry.knockbackForce * 2);
             FindObjectOfType<HitStopScript>().HitStop(hitStopDamage);
         }
     }
     private IEnumerator FullCombo()
     {
+        isActioning = true;
         yield return StartCoroutine(PreAttackDisplay(lightAttack));
         currentTime = 0;
         timing = true;
-        isActioning = true;
 
         canBeHurt = true;
         for(int a = 0; a < lightAttack.Length; a++)
@@ -110,8 +117,8 @@ public class EnemyCombatScript : MonoBehaviour
 
                 if (lightAttack[a].colliderTransforms[i] != null)
                 {
-                    print(currentTime);
                     currentTime = 0;
+                    Destroy(parryIndicators[a]);
                     colliderTrans.transform.position = lightAttack[a].colliderTransforms[i].transform.position;
                     colliderTrans.localScale = lightAttack[a].colliderTransforms[i].transform.localScale;
                     colliderTrans.GetComponent<BoxCollider2D>().enabled = true;
@@ -119,7 +126,6 @@ public class EnemyCombatScript : MonoBehaviour
                 }
                 else
                     colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
-
                 yield return new WaitForSeconds(lightAttack[a].attackTimings[i]);
             }
         }
@@ -132,6 +138,7 @@ public class EnemyCombatScript : MonoBehaviour
 
     private IEnumerator PreAttackDisplay(Attack[] nextAttack)
     {
+        Array.Clear(parryIndicators,0, parryIndicators.Length);
         float currentWaitTime = 0;
         float nextWaitTime = 0;
         for (int i = 0; i < nextAttack.Length; i++)
@@ -161,14 +168,14 @@ public class EnemyCombatScript : MonoBehaviour
                 yield return new WaitForSeconds(currentWaitTime);
 
             currentWaitTime = 0;
-            Instantiate(parryIndicator, new Vector2(indicatorTrans.position.x + ((float)i/2), indicatorTrans.position.y), Quaternion.identity);
+            parryIndicators[i] = Instantiate(parryIndicator, new Vector2(indicatorTrans.position.x + ((float)i/2), indicatorTrans.position.y), Quaternion.identity, transform);
+            
         }
         yield return new WaitForSeconds(0.1f);
     }
 
     IEnumerator PerformParry()
     {
-        isActioning = true;
         //GetComponent<PlayerMovement>().canMove = false;
         print("Began Parry IENUMERATOR");
         for (int i = 0; i < parry.sprites.Length; i++)
@@ -179,6 +186,5 @@ public class EnemyCombatScript : MonoBehaviour
         print("Completed Parry IENUMERATOR");
         spriteRenderer.sprite = defaultSprite;
         //GetComponent<PlayerMovement>().canMove = true;
-        isActioning = false;
     }
 }

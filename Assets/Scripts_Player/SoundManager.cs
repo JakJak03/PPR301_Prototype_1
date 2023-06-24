@@ -44,7 +44,7 @@ public class SoundManager : MonoBehaviour
     }
     public static void PlaySound(int minRange, int maxRange)
     {
-        if (minRange > 0 && maxRange < SoundManager.instance.soundBites.Length)
+        if (minRange >= 0 && maxRange < SoundManager.instance.soundBites.Length)
             instance.StartCoroutine(instance.PlaySoundCoroutine(Random.Range(minRange, maxRange + 1)));
         else
             print("Out of range Random Sound index: " + minRange + ", " + maxRange);
