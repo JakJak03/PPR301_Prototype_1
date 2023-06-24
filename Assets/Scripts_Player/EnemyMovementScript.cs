@@ -152,7 +152,6 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveLeft(float moveSpeed)
     {
-        print("LEFT");
         Vector3 scale = transform.localScale;
         if(scale.x > 0f)
             scale.x *= -1;
@@ -165,7 +164,6 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveRight(float moveSpeed)
     {
-        print("RIGHT");
         Vector3 scale = transform.localScale;
         if (scale.x < 0f)
             scale.x *= -1;

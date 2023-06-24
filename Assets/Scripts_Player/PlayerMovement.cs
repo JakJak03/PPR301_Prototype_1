@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D playerRb;
 
     public PlayerData movementData;
+    public Walk walkAnim;
 
     #region Variables
     public bool canMove;
@@ -54,6 +56,14 @@ public class PlayerMovement : MonoBehaviour
     //PreviousWallJumpDirection previousWallJumpDirection;
     //CurrentAction currentAction;
 
+    [Serializable]
+    public class Walk
+    {
+        public float frameInterval;
+        public Sprite[] sprites; // The sprites for each frame of the attack
+        public Sprite defaultSprite;
+    }
+
     private void Start()
     {
         playerRb = GetComponent<Rigidbody2D>();
@@ -65,9 +75,15 @@ public class PlayerMovement : MonoBehaviour
         IsFacingRight = true;
 
     }
-
+    bool isWalking;
     private void Update()
     {
+        if(!isWalking)
+        {
+            StartCoroutine(WalkAnim());
+        }
+
+
         #region TIMERS
         timeSinceGrounded -= Time.deltaTime;
         timeSinceOnWall -= Time.deltaTime;
@@ -209,6 +225,26 @@ public class PlayerMovement : MonoBehaviour
         #endregion
     }
 
+    private IEnumerator WalkAnim()
+    {
+        while(canMove && playerRb.velocity.magnitude >= 0.01f)
+        {
+            isWalking = true;
+            for (int i = 0; i < walkAnim.sprites.Length; i++)
+            {
+                if (canMove && playerRb.velocity.magnitude >= 0.01f)
+                {
+                    GetComponent<SpriteRenderer>().sprite = walkAnim.sprites[i];
+
+                    yield return new WaitForSeconds(walkAnim.frameInterval);
+                }    
+            }
+            if(canMove)
+                GetComponent<SpriteRenderer>().sprite = walkAnim.defaultSprite;
+            isWalking = false;
+        }
+    }
+
     private void FixedUpdate()
     {
         if (!canMove)
@@ -298,6 +334,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void Turn()
     {
+        if (!canMove)
+            return;
+
         // stores scale and flips the player along the x axis, 
         Vector3 scale = transform.localScale;
         scale.x *= -1;

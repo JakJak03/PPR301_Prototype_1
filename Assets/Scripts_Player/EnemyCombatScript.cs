@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static PlayerCombatScript;
 
 public class EnemyCombatScript : MonoBehaviour
 {
@@ -13,16 +14,17 @@ public class EnemyCombatScript : MonoBehaviour
     [SerializeField] private float parryCooldown;
     private bool isParrying;
     [SerializeField] private float lightAttackCooldown;
-    private Coroutine currentAction;
     bool isActioning;
-    PossibleActions queuedAction;
-    [SerializeField]
-    private int currentCombo;
 
     [Header("Attacks")]
     public Attack[] lightAttack;
     [SerializeField] private Transform colliderTrans;
 
+    public Parry parry;
+    private bool canBeHurt;
+    private int health;
+    public float hitStopParry;
+    public float hitStopDamage;
 
     [Serializable]
     public class Attack
@@ -31,6 +33,14 @@ public class EnemyCombatScript : MonoBehaviour
         public float lungeForce;
         public Sprite[] attackSprites; // The sprites for each frame of the attack
         public Transform[] colliderTransforms; // Where the collider should be on every frame of the attack
+    }
+
+    [Serializable]
+    public class Parry
+    {
+        public float knockbackForce;
+        public float[] frameTimings;
+        public Sprite[] sprites;
     }
 
     enum PossibleActions
@@ -43,8 +53,9 @@ public class EnemyCombatScript : MonoBehaviour
 
     private void Start()
     {
+        health = 6;
+        canBeHurt = false;
         spriteRenderer = GetComponent<SpriteRenderer>();
-        currentCombo = 0;
     }
     bool timing = false;
     public float currentTime;
@@ -58,19 +69,39 @@ public class EnemyCombatScript : MonoBehaviour
         if (timing)
             currentTime += Time.deltaTime;
     }
-    private void InterruptAction()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        StopCoroutine(currentAction);
+        if(collision.CompareTag("PlayerAttack"))
+        {
+            GetHit(collision.GetComponentInParent<PlayerCombatScript>().gameObject.transform);
+        }
     }
-
+    public void GetHit(Transform playerPosition)
+    {
+        if (!canBeHurt)
+        {
+            print("Parried");
+            StartCoroutine(PerformParry());
+            KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - playerPosition.position).normalized, parry.knockbackForce);
+            FindObjectOfType<HitStopScript>().HitStop(hitStopParry);
+        }
+        else
+        {
+            health--;
+            if(health <= 0) 
+                Destroy(gameObject);
+            KnockBack.Begin(GetComponent<Rigidbody2D>(), (playerPosition.position - transform.position).normalized, parry.knockbackForce * 2);
+            FindObjectOfType<HitStopScript>().HitStop(hitStopDamage);
+        }
+    }
     private IEnumerator FullCombo()
     {
         yield return StartCoroutine(PreAttackDisplay(lightAttack));
-        //print("Begun Attack");
         currentTime = 0;
         timing = true;
         isActioning = true;
 
+        canBeHurt = true;
         for(int a = 0; a < lightAttack.Length; a++)
         {
             for (int i = 0; i < lightAttack[a].attackSprites.Length; i++)
@@ -92,6 +123,7 @@ public class EnemyCombatScript : MonoBehaviour
                 yield return new WaitForSeconds(lightAttack[a].attackTimings[i]);
             }
         }
+        canBeHurt = false;
         yield return new WaitForSeconds(lightAttackCooldown);
         spriteRenderer.sprite = defaultSprite;
 
@@ -134,15 +166,19 @@ public class EnemyCombatScript : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
     }
 
-    private IEnumerator Parry()
+    IEnumerator PerformParry()
     {
         isActioning = true;
-        isParrying = true;
-        GetComponent<SpriteRenderer>().color = Color.green;
-        yield return new WaitForSeconds(parryCooldown);
-        GetComponent<SpriteRenderer>().color = Color.white;
-        isParrying = false;
-        //Debug.Log("End Action");
+        //GetComponent<PlayerMovement>().canMove = false;
+        print("Began Parry IENUMERATOR");
+        for (int i = 0; i < parry.sprites.Length; i++)
+        {
+            spriteRenderer.sprite = parry.sprites[i];
+            yield return new WaitForSeconds(parry.frameTimings[i]);
+        }
+        print("Completed Parry IENUMERATOR");
+        spriteRenderer.sprite = defaultSprite;
+        //GetComponent<PlayerMovement>().canMove = true;
         isActioning = false;
     }
 }

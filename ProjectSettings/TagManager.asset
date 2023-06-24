@@ -8,6 +8,8 @@ TagManager:
   - PlayerSword
   - Edge
   - Enemy
+  - PlayerAttack
+  - EnemyAttack
   layers:
   - Default
   - TransparentFX

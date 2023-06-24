@@ -513,7 +513,7 @@ Transform:
   m_GameObject: {fileID: 841538421}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.1, y: -10.8, z: 0}
-  m_LocalScale: {x: 57.480183, y: 11.750526, z: 3.8272836}
+  m_LocalScale: {x: 148.9369, y: 11.750526, z: 3.8272836}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1929173390}
@@ -887,7 +887,6 @@ MonoBehaviour:
   defaultSprite: {fileID: -476312535, guid: 00db6f78c3ee6c24a8d0ce26ae6f6d6b, type: 3}
   parryCooldown: 0
   lightAttackCooldown: 0
-  currentCombo: 0
   lightAttack:
   - attackTimings:
     - 0.4
@@ -938,6 +937,14 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
   colliderTrans: {fileID: 1491435482}
+  parry:
+    knockbackForce: 4
+    frameTimings:
+    - 0.3
+    sprites:
+    - {fileID: 1021649797, guid: 2aa07458c1f548140b982d4acadca006, type: 3}
+  hitStopParry: 0.2
+  hitStopDamage: 0.05
   currentTime: 0
 --- !u!1 &1098944333
 GameObject:
@@ -1076,7 +1083,7 @@ MonoBehaviour:
   parry:
     knockbackForce: 5
     frameTimings:
-    - 0.3
+    - 0.15
     sprites:
     - {fileID: 1021649797, guid: 2aa07458c1f548140b982d4acadca006, type: 3}
   parryHitStop: 0.05
@@ -1094,6 +1101,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementData: {fileID: 11400000, guid: 8fdddba7bec09fa4c99d7962e3c3e75e, type: 2}
+  walkAnim:
+    frameInterval: 0.1
+    sprites:
+    - {fileID: 889886505, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: 178327743, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: -677188170, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: 1819190378, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: 802544120, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: -604433363, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: 1908618559, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    - {fileID: 1816347573, guid: d6a0d1acd46b28947b62f9b63328aa20, type: 3}
+    defaultSprite: {fileID: -476312535, guid: 00db6f78c3ee6c24a8d0ce26ae6f6d6b, type: 3}
   canMove: 0
   _groundCheckPoint: {fileID: 927566685}
   _groundCheckSize: {x: 1.18, y: 0.08}
@@ -1441,7 +1460,7 @@ GameObject:
   - component: {fileID: 1491435483}
   m_Layer: 0
   m_Name: AttackCollider
-  m_TagString: PlayerSword
+  m_TagString: EnemyAttack
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1764,7 +1783,7 @@ GameObject:
   - component: {fileID: 1982794698}
   m_Layer: 0
   m_Name: AttackCollider
-  m_TagString: PlayerSword
+  m_TagString: PlayerAttack
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

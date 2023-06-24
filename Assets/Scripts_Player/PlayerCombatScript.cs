@@ -77,7 +77,7 @@ public class PlayerCombatScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("Enemy"))
+        if(collision.CompareTag("EnemyAttack"))
         {
             if (isParrying)
             {
@@ -101,10 +101,12 @@ public class PlayerCombatScript : MonoBehaviour
 
         // This will be called at the end every other action IF an action was queued during it
         if(queuedAction == PossibleActions.LightAttack)
-            StartCoroutine(LightAttack());
+        {
+            currentAction = StartCoroutine(LightAttack());
+        }
 
         if (queuedAction == PossibleActions.Parry)
-            StartCoroutine(PerformParry());
+            currentAction = StartCoroutine(LightAttack());
 
         queuedAction = PossibleActions.None;
     }
@@ -112,6 +114,9 @@ public class PlayerCombatScript : MonoBehaviour
     private void InterruptAction()
     {
         StopCoroutine(currentAction);
+        spriteRenderer.sprite = defaultSprite;
+        isActioning = false;
+        GetComponent<PlayerMovement>().canMove = true;
     }
 
     IEnumerator LightAttack()
@@ -121,6 +126,7 @@ public class PlayerCombatScript : MonoBehaviour
         if (currentCombo >= lightAttack.Length)
             currentCombo = 0;
 
+        GetComponent<PlayerMovement>().canMove = false;
         for (int i = 0; i < lightAttack[currentCombo].attackSprites.Length; i++)
         {
             spriteRenderer.sprite = lightAttack[currentCombo].attackSprites[i];
@@ -139,6 +145,7 @@ public class PlayerCombatScript : MonoBehaviour
         }
 
         yield return new WaitForSeconds(lightAttackCooldown);
+        GetComponent<PlayerMovement>().canMove = true;
         spriteRenderer.sprite = defaultSprite;
 
         isActioning = false;
@@ -169,6 +176,7 @@ public class PlayerCombatScript : MonoBehaviour
     IEnumerator PerformParry()
     {
         isActioning = true;
+        GetComponent<PlayerMovement>().canMove = false;
         for (int i = 0; i < parry.sprites.Length; i++)
         {
             spriteRenderer.sprite = parry.sprites[i];
@@ -183,8 +191,8 @@ public class PlayerCombatScript : MonoBehaviour
         }
         spriteRenderer.sprite = defaultSprite;
         yield return new WaitForSeconds(parryCooldown);
+        GetComponent<PlayerMovement>().canMove = true;
         isActioning = false;
-    
         if (queuedAction != PossibleActions.None)
             PlayQueuedAction(PossibleActions.Parry);
     }
