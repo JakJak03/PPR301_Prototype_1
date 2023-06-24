@@ -130,7 +130,7 @@ public class PlayerCombatScript : MonoBehaviour
                 colliderTrans.transform.position = lightAttack[currentCombo].colliderTransforms[i].transform.position;
                 colliderTrans.localScale = lightAttack[currentCombo].colliderTransforms[i].transform.localScale;
                 colliderTrans.GetComponent<BoxCollider2D>().enabled = true;
-                KnockBack.Begin(GetComponent<Rigidbody2D>(), Vector2.right, lightAttack[currentCombo].lungeForce);
+                KnockBack.Begin(GetComponent<Rigidbody2D>(), Vector2.right * transform.localScale.x, lightAttack[currentCombo].lungeForce);
             }
             else
                 colliderTrans.GetComponent<BoxCollider2D>().enabled = false;

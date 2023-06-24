@@ -152,8 +152,10 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveLeft(float moveSpeed)
     {
+        print("LEFT");
         Vector3 scale = transform.localScale;
-        scale.x *= -1;
+        if(scale.x > 0f)
+            scale.x *= -1;
         transform.localScale = scale;
 
         enemyCurrentDirection = Direction.Left;
@@ -163,8 +165,10 @@ public class EnemyMovementScript : MonoBehaviour
 
     void MoveRight(float moveSpeed)
     {
+        print("RIGHT");
         Vector3 scale = transform.localScale;
-        scale.x *= 1;
+        if (scale.x < 0f)
+            scale.x *= -1;
         transform.localScale = scale;
 
         enemyCurrentDirection = Direction.Right;

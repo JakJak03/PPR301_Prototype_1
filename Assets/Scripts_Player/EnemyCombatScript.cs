@@ -28,6 +28,7 @@ public class EnemyCombatScript : MonoBehaviour
     public class Attack
     {
         public float[] attackTimings; // How long to hold each frame
+        public float lungeForce;
         public Sprite[] attackSprites; // The sprites for each frame of the attack
         public Transform[] colliderTransforms; // Where the collider should be on every frame of the attack
     }
@@ -83,6 +84,7 @@ public class EnemyCombatScript : MonoBehaviour
                     colliderTrans.transform.position = lightAttack[a].colliderTransforms[i].transform.position;
                     colliderTrans.localScale = lightAttack[a].colliderTransforms[i].transform.localScale;
                     colliderTrans.GetComponent<BoxCollider2D>().enabled = true;
+                    KnockBack.Begin(GetComponent<Rigidbody2D>(), Vector2.right * transform.localScale.x, lightAttack[a].lungeForce);
                 }
                 else
                     colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
@@ -126,7 +128,6 @@ public class EnemyCombatScript : MonoBehaviour
             if(i != 0)
                 yield return new WaitForSeconds(currentWaitTime);
 
-            print("Current wait time: " + currentWaitTime + " Next wait time: " + nextWaitTime);
             currentWaitTime = 0;
             Instantiate(parryIndicator, new Vector2(indicatorTrans.position.x + ((float)i/2), indicatorTrans.position.y), Quaternion.identity);
         }
