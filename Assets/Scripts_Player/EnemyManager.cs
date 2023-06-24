@@ -86,7 +86,7 @@ public class EnemyManager : MonoBehaviour
                     {
                         // The other enemies will avoid
                         currentEnemyMove.moveIntoAttackPosition = false;
-                        currentEnemyMove.currentState = EnemyMovementScript.State.Avoiding;
+                        //currentEnemyMove.currentState = EnemyMovementScript.State.Avoiding;
                     }
 
                     enemyIndex++;

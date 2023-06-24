@@ -56,6 +56,7 @@ public class EnemyMovementScript : MonoBehaviour
         }
         else if (other.gameObject.tag == "Enemy")
         {
+            print(other.gameObject.name);
             if (currentState != State.Attacking)
             {
                 // Calculate enemy direction
@@ -88,10 +89,13 @@ public class EnemyMovementScript : MonoBehaviour
         myRb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
         player = FindAnyObjectByType<PlayerCombatScript>().transform;
+        currentState = State.None;
     }
 
     private void Update()
     {
+            //print("Current Distance: " + currentDistance + " Attack Distance: " + attackDistance);
+
         currentDistance = Vector2.Distance(player.transform.position, transform.position);
         Vector2 playerDirection = player.position - transform.position;
         //Debug.Log(currentDistance);
@@ -120,6 +124,7 @@ public class EnemyMovementScript : MonoBehaviour
                     MoveRight(moveSpeed);
                 }
             }
+
             // Attack Condition
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
@@ -156,12 +161,14 @@ public class EnemyMovementScript : MonoBehaviour
             // Attack Condition
             if (currentDistance <= attackDistance)
                 currentState = State.Attacking;
+            else
+                currentState = State.Chasing;
         }
         // ATTACKING
         else if (currentState == State.Attacking) 
         {
             sprite.color = Color.green;
-            print("Current Distance: " + currentDistance + " Attack Distance: " + attackDistance);
+
 
             // Chase Condition
             if (currentDistance > attackDistance)

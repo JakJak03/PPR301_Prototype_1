@@ -106,7 +106,7 @@ public class PlayerCombatScript : MonoBehaviour
         }
 
         if (queuedAction == PossibleActions.Parry)
-            currentAction = StartCoroutine(LightAttack());
+            currentAction = StartCoroutine(PerformParry());
 
         queuedAction = PossibleActions.None;
     }
