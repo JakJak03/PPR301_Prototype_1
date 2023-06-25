@@ -38,6 +38,7 @@ public class EnemyMovementScript : MonoBehaviour
         Avoiding,
         AvoidingEnemy,
         Attacking,
+        Stunned,
         None
     }
     public State currentState = State.None;
@@ -175,6 +176,10 @@ public class EnemyMovementScript : MonoBehaviour
                 currentState = State.Chasing;
 
         }
+        if(currentState == State.Stunned) 
+        {
+            sprite.color = Color.grey;
+        }
     }
 
     public bool WhoIsAttacking()
@@ -198,7 +203,9 @@ public class EnemyMovementScript : MonoBehaviour
         {
             if (closestEnemy == this)
                 currentState = State.Chasing;
-        }
+            else
+                currentState = State.Avoiding;
+        } 
         return someoneElseIsAttacking;
     }
 

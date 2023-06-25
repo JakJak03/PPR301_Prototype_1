@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using static PlayerCombatScript;
 
@@ -25,10 +26,20 @@ public class EnemyCombatScript : MonoBehaviour
     private int health;
     public float hitStopParry;
     public float hitStopDamage;
+    public int posture = 100;
 
     private EnemyMovementScript enemyMovementScript;
 
     private GameObject[] parryIndicators = new GameObject[3];
+
+    [SerializeField] private float stunTime;
+    private bool isStunned;
+    private Coroutine currentAction;
+    private Coroutine currentParryIndicatorAction;
+
+    private bool invincible = false;
+
+    [SerializeField] private float attackVariationAmount;
 
     [Serializable]
     public class Attack
@@ -57,6 +68,7 @@ public class EnemyCombatScript : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(StunTimer());
         enemyMovementScript = GetComponent<EnemyMovementScript>();
         health = 6;
         canBeHurt = false;
@@ -66,15 +78,18 @@ public class EnemyCombatScript : MonoBehaviour
     public float currentTime;
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.K))
+            posture = 0;
         if (timing)
             currentTime += Time.deltaTime;
         if (enemyMovementScript.currentState == EnemyMovementScript.State.Attacking && !isActioning)
-            StartCoroutine(FullCombo());
+            currentAction = StartCoroutine(FullCombo());
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("PlayerAttack"))
+        if(collision.CompareTag("PlayerAttack") && !invincible)
         {
+            StartCoroutine(HitCooldown());
             GetHit(collision.GetComponentInParent<PlayerCombatScript>().gameObject.transform);
         }
     }
@@ -82,7 +97,6 @@ public class EnemyCombatScript : MonoBehaviour
     {
         if (!canBeHurt)
         {
-            print("Parried");
             StartCoroutine(PerformParry());
             KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - playerPosition.position).normalized, parry.knockbackForce);
             FindObjectOfType<HitStopScript>().HitStop(hitStopParry);
@@ -90,21 +104,34 @@ public class EnemyCombatScript : MonoBehaviour
         else
         {
             health--;
+            SoundManager.PlaySound("Hurt 1");
             if(health <= 0)
             {
                 for (int i = 0; i < parryIndicators.Length; i++)
-                    if (parryIndicators[i].gameObject != null)
+                    if (parryIndicators[i] != null)
                         Destroy(parryIndicators[i].gameObject);
                 Destroy(gameObject);
             }
-            KnockBack.Begin(GetComponent<Rigidbody2D>(), (playerPosition.position - transform.position).normalized, parry.knockbackForce * 2);
+            KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - playerPosition.position).normalized, parry.knockbackForce);
             FindObjectOfType<HitStopScript>().HitStop(hitStopDamage);
         }
     }
+    private IEnumerator HitCooldown()
+    {
+        invincible = true;
+        yield return new WaitForEndOfFrame();
+        invincible = false;
+    }
     private IEnumerator FullCombo()
     {
+        if (isStunned)
+            yield break;
+
+        float[] attackVariation = AttackVariation(lightAttack);
+
         isActioning = true;
-        yield return StartCoroutine(PreAttackDisplay(lightAttack));
+        currentParryIndicatorAction = StartCoroutine(PreAttackDisplay(lightAttack, attackVariation));
+        yield return currentParryIndicatorAction;
         currentTime = 0;
         timing = true;
 
@@ -126,7 +153,13 @@ public class EnemyCombatScript : MonoBehaviour
                 }
                 else
                     colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
-                yield return new WaitForSeconds(lightAttack[a].attackTimings[i]);
+                if (i == 0)
+                {
+                    print("Waiting for: " + attackVariation[a] + " Seconds");
+                    yield return new WaitForSeconds(lightAttack[a].attackTimings[i] + attackVariation[a]);
+                }
+                else
+                    yield return new WaitForSeconds(lightAttack[a].attackTimings[i]);
             }
         }
         canBeHurt = false;
@@ -135,20 +168,50 @@ public class EnemyCombatScript : MonoBehaviour
 
         isActioning = false;
     }
-
-    private IEnumerator PreAttackDisplay(Attack[] nextAttack)
+    private void InterruptAction()
     {
+        StopCoroutine(currentAction);
+        if (currentParryIndicatorAction != null)
+        {
+            StopCoroutine(currentParryIndicatorAction);
+            for (int i = 0; i < parryIndicators.Length; i++)
+                if (parryIndicators[i] != null)
+                    Destroy(parryIndicators[i].gameObject);
+        }
+        colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
+        invincible = false;
+        spriteRenderer.sprite = defaultSprite;
+        isActioning = false;
+    }
+    private float[] AttackVariation(Attack[] nextAttack)
+    {
+        float[] variation = new float[nextAttack.Length];
+        for (int i = 0; i < nextAttack.Length; i++)
+        {
+            variation[i] = UnityEngine.Random.Range(-attackVariationAmount, attackVariationAmount);
+        }
+        return variation;
+    }
+    private IEnumerator PreAttackDisplay(Attack[] nextAttack, float[] attackVariation)
+    {
+        if (isStunned)
+            yield break;
+
+
         Array.Clear(parryIndicators,0, parryIndicators.Length);
         float currentWaitTime = 0;
         float nextWaitTime = 0;
         for (int i = 0; i < nextAttack.Length; i++)
         {
+            attackVariation[i] = UnityEngine.Random.Range(-0.2f, 0.2f);
             currentWaitTime += nextWaitTime;
             //print("1. Current wait time: " + currentWaitTime + " Next wait time: " + nextWaitTime);
             nextWaitTime = 0;
             bool reachedCollision = false;
             for (int j = 0; j < nextAttack[i].attackTimings.Length; j++)
             {
+                
+
                 if (!reachedCollision)
                 {
                     currentWaitTime += nextAttack[i].attackTimings[j];
@@ -160,7 +223,10 @@ public class EnemyCombatScript : MonoBehaviour
                 }
                 else if(reachedCollision)
                 {
-                    nextWaitTime += nextAttack[i].attackTimings[j];
+                    if (j == 0)
+                        nextWaitTime += nextAttack[i].attackTimings[j] + attackVariation[i];
+                    else
+                        nextWaitTime += nextAttack[i].attackTimings[j];
                 }
             }
 
@@ -177,14 +243,41 @@ public class EnemyCombatScript : MonoBehaviour
     IEnumerator PerformParry()
     {
         //GetComponent<PlayerMovement>().canMove = false;
-        print("Began Parry IENUMERATOR");
+        SoundManager.PlaySound(0, 4);
+        posture -= 10;
         for (int i = 0; i < parry.sprites.Length; i++)
         {
             spriteRenderer.sprite = parry.sprites[i];
             yield return new WaitForSeconds(parry.frameTimings[i]);
         }
-        print("Completed Parry IENUMERATOR");
         spriteRenderer.sprite = defaultSprite;
         //GetComponent<PlayerMovement>().canMove = true;
+    }
+
+    IEnumerator Stunned()
+    {
+        if(currentAction != null)
+            InterruptAction();
+        canBeHurt = true;
+        enemyMovementScript.currentState = EnemyMovementScript.State.Stunned;
+        yield return new WaitForSeconds(stunTime);
+        enemyMovementScript.currentState = EnemyMovementScript.State.None;
+        canBeHurt = false;
+    }
+
+    IEnumerator StunTimer()
+    {
+        while(true)
+        {
+            if (posture <= 0)
+            {
+                posture = 0;
+                StartCoroutine(Stunned());
+            }
+            if (posture > 100) posture = 100;
+            if(posture >= 0 && posture < 100) posture += 2;
+
+            yield return new WaitForSeconds(0.2f);
+        }
     }
 }

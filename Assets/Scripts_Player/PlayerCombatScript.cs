@@ -82,6 +82,7 @@ public class PlayerCombatScript : MonoBehaviour
         {
             if (isParrying)
             {
+                collision.GetComponentInParent<EnemyCombatScript>().posture -= 30;
                 SoundManager.PlaySound(0, 4);
                 KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - collision.GetComponentInParent<EnemyMovementScript>().transform.position).normalized, parry.knockbackForce);
                 FindAnyObjectByType<HitStopScript>().HitStop(parryHitStop);
@@ -118,6 +119,7 @@ public class PlayerCombatScript : MonoBehaviour
     {
         StopCoroutine(currentAction);
         spriteRenderer.sprite = defaultSprite;
+        colliderTrans.GetComponent<BoxCollider2D>().enabled = false;
         isActioning = false;
         GetComponent<PlayerMovement>().canMove = true;
     }
@@ -175,6 +177,7 @@ public class PlayerCombatScript : MonoBehaviour
                 isParrying = false;
             yield return new WaitForSeconds(parry.frameTimings[i]);
         }
+        isParrying = false;
         spriteRenderer.sprite = defaultSprite;
         yield return new WaitForSeconds(parryCooldown);
         GetComponent<PlayerMovement>().canMove = true;
