@@ -204,7 +204,7 @@ public class EnemyMovementScript : MonoBehaviour
             if (closestEnemy == this)
                 currentState = State.Chasing;
             else
-                currentState = State.Avoiding;
+                currentState = State.None;
         } 
         return someoneElseIsAttacking;
     }

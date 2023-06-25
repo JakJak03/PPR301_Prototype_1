@@ -89,7 +89,8 @@ public class PlayerCombatScript : MonoBehaviour
             }
             else
             {
-                if(isActioning) InterruptAction();
+                SoundManager.PlaySound("Hurt 1");
+                if (isActioning) InterruptAction();
                 KnockBack.Begin(GetComponent<Rigidbody2D>(), (transform.position - collision.GetComponentInParent<EnemyMovementScript>().transform.position).normalized, parry.knockbackForce);
                 FindAnyObjectByType<HitStopScript>().HitStop(damagedHitStop);
             }
